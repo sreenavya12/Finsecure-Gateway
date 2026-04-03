@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  Global Light Theme Overrides 
+  Since the app was built primarily with hardcoded dark classes (bg-[#0b1120], text-white), 
+  this securely flips the color palette whenever the global '.light' class is enabled. 
+*/
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#0b1120\], html.light .bg-black, html.light .bg-slate-950, html.light .bg-\[\#0f2027\], html.light .bg-\[\#050b14\] {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#111827\], html.light .bg-slate-900, html.light .bg-white\/10 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-400, html.light .text-slate-300 {
+  color: #475569 !important;
+}
+
+html.light .border-white\/10, html.light .border-white\/5, html.light .border-slate-800, html.light .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-white\/5, html.light .bg-slate-800, html.light .bg-slate-950\/50 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light .text-cyan-400, html.light .text-blue-400, html.light .text-emerald-400 {
+  color: #0284c7 !important;
+}
+
+html.light .text-\[\#0b1120\] {
+  color: #f8fafc !important;
+}

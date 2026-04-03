@@ -2,9 +2,7 @@ import { useState, useEffect } from "react"
 import Layout from "../components/Layout"
 
 export default function Operations() {
-  const [activeTab, setActiveTab] = useState<"monitor" | "fraud">("monitor")
   const [healthScore, setHealthScore] = useState(98)
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Simulate dynamic health score fluctuation
   useEffect(() => {

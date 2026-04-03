@@ -55,7 +55,7 @@ export default function EmployeeDashboard() {
 
       // 3. Create Session & Redirect
       if (mounted) {
-        createSecureSession(sessionData.session.user.id)
+        createSecureSession(sessionData.session.user.id, userRole)
         
         // Log access
         await supabase.from("security_logs").insert([

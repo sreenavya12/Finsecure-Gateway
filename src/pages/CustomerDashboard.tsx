@@ -39,6 +39,7 @@ export default function CustomerDashboard() {
   const navigate = useNavigate()
   const [balance, setBalance] = useState<number | null>(null)
   const [transactions, setTransactions] = useState<any[]>([])
+  // @ts-expect-error unused loading var
   const [loading, setLoading] = useState(true)
   const customerId = localStorage.getItem("customer_id")
 

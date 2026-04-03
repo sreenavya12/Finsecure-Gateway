@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
-import { ShieldCheck, Activity, LogOut, Users, AlertTriangle, UserCog, History, ShieldAlert } from "lucide-react"
+import { ShieldCheck, Activity, LogOut, Users, AlertTriangle, UserCog, ShieldAlert } from "lucide-react"
 
 export default function Admin() {
   const [metrics, setMetrics] = useState({
@@ -11,7 +11,6 @@ export default function Admin() {
   })
   const [users, setUsers] = useState<any[]>([])
   const [recentLogs, setRecentLogs] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -19,7 +18,6 @@ export default function Admin() {
   }
 
   const fetchData = async () => {
-    setIsLoading(true)
     
     // 1. Fetch Metrics
     const { count: uCount } = await supabase.from("profiles").select("*", { count: "exact", head: true })
@@ -40,7 +38,6 @@ export default function Admin() {
     })
     if (userData) setUsers(userData)
     if (logData) setRecentLogs(logData)
-    setIsLoading(false)
   }
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import BottomNav from "../components/BottomNav"
 import Sidebar from "../components/Sidebar"
 import Topbar from "../components/Topbar"
 import VirtualCard from "../components/VirtualCard"
+import { generateVirtualCard } from "../utils/identity"
 import { 
   ShieldCheck, 
   TrendingUp, 
@@ -58,7 +59,29 @@ export default function CustomerDashboard() {
       .order("created_at", { ascending: false })
       .limit(4)
 
-    if (customer) setCustomerData(customer)
+    if (customer) {
+      if (!customer.card_number) {
+        const { cardNum, expiry, cvv } = generateVirtualCard()
+        await supabase
+          .from("customers")
+          .update({
+             card_number: cardNum,
+             card_expiry: expiry,
+             card_cvv: cvv
+          })
+          .eq("customer_id", customerId)
+        
+        setCustomerData({
+          ...customer,
+          card_number: cardNum,
+          card_expiry: expiry,
+          card_cvv: cvv
+        })
+      } else {
+        setCustomerData(customer)
+      }
+    }
+    
     if (txs) setTransactions(txs)
   }
 

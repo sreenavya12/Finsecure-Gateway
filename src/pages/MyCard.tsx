@@ -5,6 +5,7 @@ import Sidebar from "../components/Sidebar"
 import Topbar from "../components/Topbar"
 import BottomNav from "../components/BottomNav"
 import VirtualCard from "../components/VirtualCard"
+import { generateVirtualCard } from "../utils/identity"
 import { ShieldCheck, Lock, Info, RefreshCw } from "lucide-react"
 
 export default function MyCard() {
@@ -25,7 +26,26 @@ export default function MyCard() {
         .single()
 
       if (!error && data) {
-        setCustomerData(data)
+        if (!data.card_number) {
+          const { cardNum, expiry, cvv } = generateVirtualCard()
+          await supabase
+            .from("customers")
+            .update({
+              card_number: cardNum,
+              card_expiry: expiry,
+              card_cvv: cvv
+            })
+            .eq("customer_id", customerId)
+          
+          setCustomerData({
+            ...data,
+            card_number: cardNum,
+            card_expiry: expiry,
+            card_cvv: cvv
+          })
+        } else {
+          setCustomerData(data)
+        }
       }
       setLoading(false)
     }

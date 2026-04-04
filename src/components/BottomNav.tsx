@@ -11,6 +11,12 @@ export default function BottomNav() {
     { label: "Profile", icon: "👤", path: "/profile" },
   ]
 
+  const handleLogout = () => {
+    localStorage.removeItem("customer_id")
+    sessionStorage.clear()
+    navigate("/")
+  }
+
   return (
     <div className="fixed bottom-0 left-0 w-full md:hidden backdrop-blur-xl bg-white/10 border-t border-white/20 shadow-2xl z-50">
       <div className="flex justify-around py-3">
@@ -30,6 +36,13 @@ export default function BottomNav() {
             </button>
           )
         })}
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center text-xs text-red-400 transition"
+        >
+          <span className="text-xl">🚪</span>
+          Logout
+        </button>
       </div>
     </div>
   )

@@ -236,6 +236,23 @@ export default function Profile() {
 
           </div>
         )}
+        {/* Logout Section */}
+        <div className="mt-12 space-y-4">
+          <button
+            onClick={() => {
+              localStorage.removeItem("customer_id")
+              sessionStorage.clear()
+              window.location.href = "/"
+            }}
+            className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 p-4 rounded-2xl font-bold transition flex items-center justify-center gap-3"
+          >
+            <Fingerprint size={20} className="opacity-50" />
+            Secure Logout & Terminate Session
+          </button>
+          <p className="text-center text-[10px] text-slate-500 uppercase tracking-widest font-medium">
+             Security: Your identity will be locked to this browser until next login.
+          </p>
+        </div>
 
       </div>
 

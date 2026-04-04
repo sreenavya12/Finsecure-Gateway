@@ -26,6 +26,11 @@ export default function PayCard() {
       return
     }
 
+    if (Number(amount) < 10000) {
+      setError("Minimum payment amount is ₹10,000")
+      return
+    }
+
     if (!senderId) {
       setError("Session expired.")
       return

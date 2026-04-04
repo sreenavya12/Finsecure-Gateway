@@ -30,6 +30,12 @@ export default function TransferFunds() {
     setLoading(true)
     setError("")
 
+    if (Number(amount) < 10000) {
+      setError("Minimum transfer amount is ₹10,000")
+      setLoading(false)
+      return
+    }
+
     const { data: receiverData, error: dbError } = await supabase
       .from("customers")
       .select("customer_id, full_name")

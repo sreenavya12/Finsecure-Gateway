@@ -14,8 +14,8 @@ export default function EnterAmount() {
   const receiverId = location.state?.upiId || ""
 
   const handleNext = () => {
-    if (!amount || Number(amount) <= 0) {
-      setError("Enter valid amount")
+    if (!amount || Number(amount) < 10000) {
+      setError("Minimum payment amount is ₹10,000")
       return
     }
 

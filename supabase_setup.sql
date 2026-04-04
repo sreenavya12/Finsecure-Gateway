@@ -71,7 +71,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. Update customers table to support new requirements
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS full_name TEXT;
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS bank_name TEXT DEFAULT 'FinSecure Bank';
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS ifsc_code TEXT DEFAULT 'FSEC0001234';
+
+-- 4. Biometric Authentication Fields (WebAuthn)
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS biometric_credential_id TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS biometric_public_key TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS biometric_counter INTEGER DEFAULT 0;

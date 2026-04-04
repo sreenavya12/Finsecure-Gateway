@@ -2,17 +2,29 @@ import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { QRCodeCanvas } from "qrcode.react"
 import BottomNav from "../components/BottomNav"
+import { checkHardwareSupport, registerBiometrics } from "../utils/biometric"
+import { Fingerprint, CheckCircle2, ShieldCheck } from "lucide-react"
 
 export default function Profile() {
   const [customer, setCustomer] = useState<any>(null)
   const [editingUpi, setEditingUpi] = useState(false)
   const [newUpi, setNewUpi] = useState("")
+  const [isMobile, setIsMobile] = useState(false)
+  const [hasBiometrics, setHasBiometrics] = useState(false)
+  const [linking, setLinking] = useState(false)
 
   const customerId = localStorage.getItem("customer_id")
 
   useEffect(() => {
     fetchCustomer()
+    checkSupport()
   }, [])
+
+  const checkSupport = async () => {
+    const support = await checkHardwareSupport()
+    setIsMobile(support.isMobile)
+    setHasBiometrics(support.hasBiometrics)
+  }
 
   const fetchCustomer = async () => {
     if (!customerId) return
@@ -44,6 +56,32 @@ export default function Profile() {
   const copyUpi = () => {
     navigator.clipboard.writeText(customer.upi_id)
     alert("UPI ID Copied!")
+  }
+
+  const handleLinkBiometric = async () => {
+    try {
+      setLinking(true)
+      const { credentialId, publicKey } = await registerBiometrics(customer.customer_id, customer.full_name)
+      
+      const { error } = await supabase
+        .from("customers")
+        .update({
+          biometric_credential_id: credentialId,
+          biometric_public_key: publicKey,
+          face_registered: true // Compatibility flag
+        })
+        .eq("customer_id", customerId)
+
+      if (error) throw error
+
+      alert("Fingerprint successfully linked! You can now login using biometrics.")
+      fetchCustomer()
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || "Failed to link biometrics")
+    } finally {
+      setLinking(false)
+    }
   }
 
   if (!customer) return null
@@ -126,6 +164,51 @@ export default function Profile() {
           </div>
 
         </div>
+
+        {/* 📱 Mobile Biometric Section */}
+        {isMobile && hasBiometrics && (
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl mb-8 overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-all duration-700"></div>
+            
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-blue-500/20 rounded-2xl text-blue-400">
+                 <ShieldCheck size={28} />
+              </div>
+              <div>
+                 <h3 className="text-xl font-bold">Biometric Security</h3>
+                 <p className="text-xs text-slate-400 tracking-wide uppercase font-semibold">Native Hardware Authentication</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Connect your device's fingerprint or FaceID sensor to log in instantly without passwords.
+              </p>
+
+              {customer.biometric_credential_id ? (
+                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-400">
+                  <CheckCircle2 size={20} />
+                  <span className="text-sm font-bold">Biometrics Linked & Active</span>
+                </div>
+              ) : (
+                <button
+                  onClick={handleLinkBiometric}
+                  disabled={linking}
+                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white p-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition shadow-lg shadow-blue-900/20"
+                >
+                  {linking ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <Fingerprint size={20} />
+                      Link Fingerprint
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* QR Section */}
         {customer.upi_id && (

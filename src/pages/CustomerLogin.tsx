@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
 import bcrypt from "bcryptjs"
 import { useNavigate } from "react-router-dom"
+import { Fingerprint } from "lucide-react"
+import { checkHardwareSupport, authenticateBiometrics } from "../utils/biometric"
 
 export default function CustomerLogin() {
   const navigate = useNavigate()
@@ -12,16 +14,40 @@ export default function CustomerLogin() {
   const [mpin, setMpin] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [hasBiometrics, setHasBiometrics] = useState(false)
+  const [biometricUser, setBiometricUser] = useState<any>(null)
 
   const [isLockedTab, setIsLockedTab] = useState(false)
 
   // 🔹 Check for Existing Global Session
+  // 🔹 Check for Existing Global Session & Biometrics
   useEffect(() => {
-    const globalId = localStorage.getItem("customer_id")
-    if (globalId) {
-      setCustomerInput(globalId)
-      setIsLockedTab(true)
+    const checkSupport = async () => {
+      const support = await checkHardwareSupport()
+      setIsMobile(support.isMobile)
+      setHasBiometrics(support.hasBiometrics)
+      
+      const globalId = localStorage.getItem("customer_id")
+      if (globalId) {
+        setCustomerInput(globalId)
+        setIsLockedTab(true)
+        
+        if (support.hasBiometrics) {
+           const { data } = await supabase
+             .from("customers")
+             .select("customer_id, biometric_credential_id")
+             .eq("customer_id", globalId)
+             .single()
+           
+           if (data?.biometric_credential_id) {
+             setBiometricUser(data)
+           }
+        }
+      }
     }
+
+    checkSupport()
     generateCaptcha()
   }, [])
 
@@ -167,6 +193,45 @@ export default function CustomerLogin() {
     navigate("/customer-dashboard")
   }
 
+  const handleBiometricLogin = async () => {
+    setError("")
+    setLoading(true)
+
+    try {
+      const targetUser = biometricUser || null;
+      let credId = targetUser?.biometric_credential_id;
+
+      if (!credId) {
+        // Try searching for the user entered in the input
+        const { data } = await supabase
+          .from("customers")
+          .select("customer_id, biometric_credential_id")
+          .or(`customer_id.eq.${customerInput},mobile_number.eq.${customerInput}`)
+          .single()
+        
+        if (!data?.biometric_credential_id) {
+          throw new Error("Biometrics not registered for this account")
+        }
+        credId = data.biometric_credential_id
+        setBiometricUser(data)
+      }
+
+      const success = await authenticateBiometrics(credId)
+      if (success) {
+        const userId = biometricUser?.customer_id || customerInput;
+        localStorage.setItem("customer_id", userId)
+        sessionStorage.setItem("tab_verified", "true")
+        window.dispatchEvent(new Event("storage"))
+        window.dispatchEvent(new Event("tabSync"))
+        navigate("/customer-dashboard")
+      }
+    } catch (err: any) {
+      setError(err.message || "Biometric authentication failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050b14] text-white relative overflow-hidden font-sans">
       
@@ -215,15 +280,28 @@ export default function CustomerLogin() {
               />
             </div>
 
-            <button
-              disabled={loading}
-              onClick={handlePasswordCheck}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white p-4 rounded-xl font-bold shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all flex justify-center items-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : "Authenticate Identity"}
-            </button>
+            <div className="flex gap-3 mt-2">
+              <button
+                disabled={loading}
+                onClick={handlePasswordCheck}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white p-4 rounded-xl font-bold shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : "Authenticate Identity"}
+              </button>
+
+              {isMobile && hasBiometrics && (
+                <button
+                  onClick={handleBiometricLogin}
+                  disabled={loading}
+                  className="w-16 bg-slate-950/60 border border-blue-500/30 text-blue-400 rounded-xl flex items-center justify-center hover:bg-blue-500/10 transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)] active:scale-95"
+                  title="Biometric Login"
+                >
+                  <Fingerprint size={24} />
+                </button>
+              )}
+            </div>
           </div>
         )}
 

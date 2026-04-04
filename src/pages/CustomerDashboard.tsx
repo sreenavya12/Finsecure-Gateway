@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase"
 import BottomNav from "../components/BottomNav"
 import Sidebar from "../components/Sidebar"
 import Topbar from "../components/Topbar"
+import VirtualCard from "../components/VirtualCard"
 import { 
   ShieldCheck, 
   TrendingUp, 
@@ -37,19 +38,16 @@ const spendingData = [
 
 export default function CustomerDashboard() {
   const navigate = useNavigate()
-  const [balance, setBalance] = useState<number | null>(null)
+  const [customerData, setCustomerData] = useState<any>(null)
   const [transactions, setTransactions] = useState<any[]>([])
-  // @ts-expect-error unused loading var
-  const [loading, setLoading] = useState(true)
   const customerId = localStorage.getItem("customer_id")
 
   const fetchDashboardData = async () => {
     if (!customerId) return
-    setLoading(true)
 
     const { data: customer } = await supabase
       .from("customers")
-      .select("balance")
+      .select("balance, full_name, card_number, card_expiry, card_cvv")
       .eq("customer_id", customerId)
       .single()
 
@@ -60,9 +58,8 @@ export default function CustomerDashboard() {
       .order("created_at", { ascending: false })
       .limit(4)
 
-    if (customer) setBalance(customer.balance)
+    if (customer) setCustomerData(customer)
     if (txs) setTransactions(txs)
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -75,12 +72,13 @@ export default function CustomerDashboard() {
           schema: 'public', 
           table: 'customers', 
           filter: `customer_id=eq.${customerId}` 
-      }, payload => {
-          setBalance(payload.new.balance)
+      }, (payload: any) => {
+          setCustomerData((prev: any) => ({ ...prev, balance: payload.new.balance }))
       })
       .subscribe()
 
     return () => { supabase.removeChannel(balanceSubscription) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerId])
 
   const logout = () => {
@@ -111,29 +109,42 @@ export default function CustomerDashboard() {
         <main className="flex-1 p-4 lg:p-10 space-y-6 lg:space-y-8 pb-24 lg:pb-10 overflow-y-auto custom-scrollbar">
           
           {/* Section 1: Hero Metrics */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Glass Balance Card */}
-            <div className="lg:col-span-2 relative group overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 p-6 lg:p-8 rounded-[1.5rem] lg:rounded-[2rem] shadow-2xl">
-              <div className="absolute top-0 right-0 p-10 opacity-20 group-hover:scale-110 transition-transform duration-700 hidden sm:block">
-                <Wallet size={120} />
+            {/* Virtual Card & Balance Hero */}
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 lg:p-8 rounded-[2rem] shadow-xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+              
+              {/* Virtual Card Component */}
+              <div className="flex justify-center order-2 md:order-1">
+                <VirtualCard 
+                  cardHolder={customerData?.full_name || "Valued Customer"}
+                  cardNumber={customerData?.card_number || ""}
+                  expiry={customerData?.card_expiry || ""}
+                  cvv={customerData?.card_cvv || ""}
+                />
               </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-blue-100/60">Total Liquidity</span>
-                    <ShieldCheck size={14} className="text-emerald-300" />
+
+              {/* Balance & Actions */}
+              <div className="flex flex-col justify-center order-1 md:order-2 space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-slate-400">Available Balance</span>
+                    <div className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-bold rounded uppercase tracking-tighter border border-emerald-500/20">Secured</div>
+                  </div>
+                  <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-white">
+                    {customerData?.balance !== undefined ? `₹${customerData.balance.toLocaleString()}` : "••••••"}
+                  </h2>
                 </div>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter">
-                  {balance !== null ? `₹${balance.toLocaleString()}` : "••••••"}
-                </h2>
-                <div className="mt-8 lg:mt-10 flex items-center gap-4 lg:gap-6">
-                   <div className="flex flex-col">
-                      <span className="text-[9px] lg:text-[10px] text-blue-200/50 uppercase font-bold">Primary Card</span>
-                      <span className="text-xs lg:text-sm font-mono tracking-widest">**** 9012</span>
-                   </div>
-                   <div className="h-8 w-px bg-white/10"></div>
-                   <button onClick={() => navigate("/my-qr")} className="bg-white/10 hover:bg-white/20 px-3 lg:px-4 py-2 rounded-xl text-[10px] lg:text-xs font-bold transition flex items-center gap-2">
-                      <QrCode size={14} /> QR
+                
+                <div className="flex flex-wrap gap-4">
+                   <button onClick={() => navigate("/my-qr")} className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 group">
+                      <QrCode size={16} className="text-blue-400 group-hover:scale-110 transition" /> 
+                      <span>My Identifier</span>
+                   </button>
+                   <button onClick={() => navigate("/transfer-funds")} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20">
+                      <Wallet size={16} />
+                      <span>Add Funds</span>
                    </button>
                 </div>
               </div>

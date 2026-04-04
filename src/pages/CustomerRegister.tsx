@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase"
 import {
   generateCustomerId,
   generateAccountNumber,
+  generateVirtualCard,
   hashValue
 } from "../utils/identity"
 
@@ -38,6 +39,7 @@ export default function CustomerRegister() {
 
     const customerId = generateCustomerId()
     const accNumber = accountNumber || generateAccountNumber()
+    const { cardNum, expiry, cvv } = generateVirtualCard()
 
     const passwordHash = await hashValue(password)
     const mpinHash = await hashValue(mpin)
@@ -53,7 +55,10 @@ export default function CustomerRegister() {
         password_hash: passwordHash,
         mpin_hash: mpinHash,
         face_registered: true,
-        balance: 5000
+        balance: 10000,
+        card_number: cardNum,
+        card_expiry: expiry,
+        card_cvv: cvv
       }
     ])
 

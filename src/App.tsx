@@ -24,6 +24,7 @@ import TransferFunds from "./pages/TransferFunds"
 import AccountStatement from "./pages/AccountStatement"
 import PlaceholderScreen from "./pages/PlaceholderScreen"
 import MyQR from "./pages/MyQR"
+import MyCard from "./pages/MyCard"
 
 // UI Global
 import ThemeToggle from "./components/ThemeToggle"
@@ -145,6 +146,10 @@ export default function App() {
         <Route
           path="/my-qr"
           element={customerSession ? <MyQR /> : <Navigate to="/customer-login" replace />}
+        />
+        <Route
+          path="/my-card"
+          element={customerSession ? <MyCard /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/transfer-funds"

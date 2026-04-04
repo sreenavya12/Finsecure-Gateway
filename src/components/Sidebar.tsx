@@ -22,7 +22,8 @@ export default function Sidebar() {
   const mainNav = [
     { label: "Dashboard", path: "/customer-dashboard", icon: <LayoutDashboard size={20} /> },
     { label: "Transactions", path: "/transactions", icon: <ArrowLeftRight size={20} /> },
-    { label: "Cards", path: "/pay-card", icon: <CreditCard size={20} /> },
+    { label: "My Card", path: "/my-card", icon: <CreditCard size={20} /> },
+    { label: "Pay via Card", path: "/pay-card", icon: <CreditCard size={20} className="opacity-50" /> },
   ]
 
   const securityNav = [

@@ -28,3 +28,22 @@ export const compareHash = async (
 ) => {
   return bcrypt.compare(plain, hash)
 }
+
+// Generate 16-digit Virtual Card Number (BANK style)
+export const generateVirtualCard = () => {
+  let cardNum = ""
+  for (let i = 0; i < 16; i++) {
+    cardNum += Math.floor(Math.random() * 10)
+  }
+  
+  // Expiry (5 years from now)
+  const now = new Date()
+  const expMonth = String(now.getMonth() + 1).padStart(2, '0')
+  const expYear = String((now.getFullYear() + 5) % 100).padStart(2, '0')
+  const expiry = `${expMonth}/${expYear}`
+  
+  // CVV (3 digits)
+  const cvv = String(Math.floor(100 + Math.random() * 900))
+  
+  return { cardNum, expiry, cvv }
+}

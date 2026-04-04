@@ -2,14 +2,25 @@ import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
 import bcrypt from "bcryptjs"
 
-export default function SecureGateway() {
+interface SecureGatewayProps {
+  onSuccess?: () => void
+  onCancel?: () => void
+  paymentData?: any
+}
+
+export default function SecureGateway({ onSuccess, onCancel, paymentData: initialPaymentData }: SecureGatewayProps) {
   const [mpin, setMpin] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [paymentData, setPaymentData] = useState<any>(null)
+  const [paymentData, setPaymentData] = useState<any>(initialPaymentData || null)
 
   useEffect(() => {
+    if (initialPaymentData) {
+      setPaymentData(initialPaymentData)
+      return
+    }
+
     // Look for payment session in local storage or URL
     const searchParams = new URLSearchParams(window.location.search)
     const sessionId = searchParams.get("session")
@@ -29,14 +40,28 @@ export default function SecureGateway() {
     }, 30000)
 
     return () => clearTimeout(timeoutMsg)
-  }, [success])
+  }, [success, initialPaymentData])
 
   const killSubdomain = () => {
-    // Send message to parent window if opened via popup, then close
-    if (window.opener) {
-      window.opener.postMessage("GATEWAY_SUCCESS", "*")
+    // 1. Handle prop callbacks (for Modal/Embedded use)
+    if (success && onSuccess) {
+      onSuccess()
+      return
     }
-    window.close()
+    if (!success && onCancel) {
+      onCancel()
+      return
+    }
+
+    // 2. Handle cross-window messaging (for Popup use)
+    if (window.opener) {
+      window.opener.postMessage(success ? "GATEWAY_SUCCESS" : "GATEWAY_CANCEL", "*")
+    }
+    
+    // Only close if it's not embedded
+    if (!onSuccess && !onCancel) {
+      window.close()
+    }
   }
 
   const handlePayment = async () => {

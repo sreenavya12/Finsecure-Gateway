@@ -4,6 +4,7 @@ import Topbar from "../components/Topbar"
 import BottomNav from "../components/BottomNav"
 import Sidebar from "../components/Sidebar"
 import { ShieldCheck, Lock } from "lucide-react"
+import SecureGateway from "./SecureGateway"
 
 export default function PayCard() {
   const navigate = useNavigate()
@@ -14,6 +15,8 @@ export default function PayCard() {
   const [amount, setAmount] = useState("")
   const [error, setError] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const [showGateway, setShowGateway] = useState(false)
+  const [paymentData, setPaymentData] = useState<any>(null)
 
   const senderId = localStorage.getItem("customer_id")
 
@@ -33,10 +36,7 @@ export default function PayCard() {
 
     // Simulate Stripe tokenization delay
     setTimeout(() => {
-      // Create a unique terminal session
-      const sessionId = Date.now().toString()
-      
-      const paymentData = {
+      const data = {
         sender: senderId,
         receiver,
         amount: Number(amount),
@@ -45,24 +45,19 @@ export default function PayCard() {
         gateway: "STRIPE"
       }
 
-      // Save session data for the secure terminal
-      localStorage.setItem(`payment_session_${sessionId}`, JSON.stringify(paymentData))
-
-      // Listen for completion
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data === "GATEWAY_SUCCESS") {
-          window.removeEventListener("message", handleMessage)
-          // Card Payment Success - redirect to dashboard
-          navigate("/customer-dashboard", { state: { refresh: true }, replace: true })
-        }
-      }
-      window.addEventListener("message", handleMessage)
-
-      // Open "subdomain" secure terminal for 3D Secure / MPIN
-      const gatewayUrl = `${window.location.origin}/secure-gateway?session=${sessionId}`
-      window.open(gatewayUrl, "_blank", "width=450,height=600,top=100,left=100,menubar=no,toolbar=no,location=no,status=no,resizable=no")
+      setPaymentData(data)
+      setShowGateway(true)
       setIsProcessing(false)
     }, 1500)
+  }
+
+  const handleGatewaySuccess = () => {
+    setShowGateway(false)
+    navigate("/customer-dashboard", { state: { refresh: true }, replace: true })
+  }
+
+  const handleGatewayCancel = () => {
+    setShowGateway(false)
   }
 
   return (
@@ -94,7 +89,7 @@ export default function PayCard() {
             {/* Form Content */}
             <div className="p-6 space-y-5">
               
-              {/* Receiver & Amount Info (To mirror a real checkout page) */}
+              {/* Receiver & Amount Info */}
               <div className="flex gap-4">
                 <div className="w-1/2">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Receiver ID</label>
@@ -118,7 +113,7 @@ export default function PayCard() {
                 </div>
               </div>
 
-              {/* Simulated Stripe Card Element */}
+              {/* Card Information */}
               <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Card Information</label>
                 <div className="border border-slate-300 rounded-lg bg-white overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition shadow-sm">
@@ -179,7 +174,6 @@ export default function PayCard() {
                 )}
               </button>
             </div>
-            {/* Footer */}
             <div className="bg-slate-50 py-3 text-center border-t border-slate-200">
                <p className="text-[10px] text-slate-500 font-medium">Payments are secure and encrypted.</p>
             </div>
@@ -188,6 +182,24 @@ export default function PayCard() {
 
         <div className="lg:hidden"><BottomNav /></div>
       </div>
+
+      {showGateway && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
+           <div className="w-full h-full max-w-4xl max-h-[800px] bg-black border border-blue-900/30 rounded-none lg:rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(30,58,138,0.5)] relative">
+              <button 
+                onClick={handleGatewayCancel}
+                className="absolute top-4 right-4 z-[110] text-slate-500 hover:text-white transition"
+              >
+                ✕
+              </button>
+              <SecureGateway 
+                paymentData={paymentData} 
+                onSuccess={handleGatewaySuccess}
+                onCancel={handleGatewayCancel}
+              />
+           </div>
+        </div>
+      )}
     </div>
   )
 }

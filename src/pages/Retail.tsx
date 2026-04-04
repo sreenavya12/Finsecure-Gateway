@@ -26,25 +26,25 @@ export default function Retail() {
 
   return (
     <Layout role="retail">
-      <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl overflow-hidden relative min-h-[700px]">
+      <div className="bg-slate-800 p-5 lg:p-8 rounded-2xl border border-slate-700 shadow-xl overflow-hidden relative min-h-[700px]">
         
         {/* Navigation Header */}
-        <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-6 relative z-10">
-          <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 border-b border-slate-700 pb-6 relative z-10">
+          <div className="flex flex-wrap gap-3">
             <button 
               onClick={() => setView("dashboard")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${view === 'dashboard' ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 hover:bg-slate-700'}`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${view === 'dashboard' ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 hover:bg-slate-700'}`}
             >
-              📊 System Overview
+              📊 Overview
             </button>
             <button 
               onClick={() => setView("search")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${view === 'search' ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 hover:bg-slate-700'}`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${view === 'search' ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 hover:bg-slate-700'}`}
             >
-              🔍 Customer Terminal
+              🔍 Terminal
             </button>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
             <div className="text-right">
               <p className="text-[10px] text-slate-500 uppercase font-bold">HSM Signal</p>
               <p className="text-xs text-green-400 font-mono">STABLE // 12ms</p>
@@ -58,7 +58,7 @@ export default function Retail() {
         {view === "dashboard" ? (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             {/* Top Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Zone Liquidity", val: "₹ 4.28 Cr", color: "text-white" },
                 { label: "Active Risks", val: "07", color: "text-red-400" },
@@ -67,7 +67,7 @@ export default function Retail() {
               ].map((stat, i) => (
                 <div key={i} className="bg-slate-900/40 p-5 rounded-2xl border border-slate-700/50 backdrop-blur-md">
                   <p className="text-[10px] text-slate-500 uppercase tracking-tighter mb-1 font-bold">{stat.label}</p>
-                  <p className={`text-2xl font-mono ${stat.color}`}>{stat.val}</p>
+                  <p className={`text-xl sm:text-2xl font-mono ${stat.color}`}>{stat.val}</p>
                 </div>
               ))}
             </div>
@@ -76,12 +76,12 @@ export default function Retail() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Sector Health Graph (Mockup) */}
-              <div className="lg:col-span-2 bg-slate-900/60 p-6 rounded-2xl border border-slate-700">
+              <div className="lg:col-span-2 bg-slate-900/60 p-5 lg:p-6 rounded-2xl border border-slate-700">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-white font-medium">Sector Transaction Volume</h3>
-                  <span className="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 uppercase">Real-time</span>
+                  <h3 className="text-white font-medium text-sm lg:text-base">Sector Transaction Volume</h3>
+                  <span className="text-[8px] sm:text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 uppercase">Real-time</span>
                 </div>
-                <div className="h-48 flex items-end gap-1 px-2">
+                <div className="h-32 sm:h-48 flex items-end gap-1 px-1 sm:px-2">
                   {[40, 70, 45, 90, 65, 80, 30, 95, 50, 75, 60, 85].map((h, i) => (
                     <div key={i} className="flex-1 bg-gradient-to-t from-red-600/20 to-red-500/60 rounded-t-sm transition-all duration-500 hover:to-red-400" style={{ height: `${h}%` }}></div>
                   ))}
@@ -89,12 +89,12 @@ export default function Retail() {
               </div>
 
               {/* Live Security Feed */}
-              <div className="bg-slate-950/80 p-6 rounded-2xl border border-slate-800 shadow-inner">
+              <div className="bg-slate-950/80 p-5 lg:p-6 rounded-2xl border border-slate-800 shadow-inner">
                 <h3 className="text-slate-200 text-sm font-bold mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   Live Security Logs
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {systemAlerts.map(alert => (
                     <div key={alert.id} className="text-[10px] font-mono border-l-2 border-slate-800 pl-3 py-1">
                       <div className="flex justify-between text-slate-500 mb-1">
@@ -107,7 +107,7 @@ export default function Retail() {
                     </div>
                   ))}
                 </div>
-                <button className="w-full mt-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] rounded uppercase tracking-widest transition-colors">
+                <button className="w-full mt-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] rounded uppercase tracking-widest transition-colors font-bold">
                   Open Audit Terminal
                 </button>
               </div>
@@ -115,9 +115,8 @@ export default function Retail() {
           </div>
         ) : (
           <div className="animate-in slide-in-from-right-4 duration-300">
-             {/* Include your existing Customer Search / Card Services logic here */}
-             <div className="bg-slate-900/50 p-12 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500">
-                <p>Customer Terminal Active. Ready for Secure Query.</p>
+             <div className="bg-slate-900/50 p-6 sm:p-12 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500 text-center">
+                <p className="text-sm px-4">Customer Terminal Active. Ready for Secure Query.</p>
                 <button onClick={() => setView("dashboard")} className="mt-4 text-red-400 text-sm hover:underline">Return to System Overview</button>
              </div>
           </div>

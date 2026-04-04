@@ -1,11 +1,14 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import SecureGateway from "./SecureGateway"
 
 export default function EnterAmount() {
   const location = useLocation()
   const navigate = useNavigate()
   const [amount, setAmount] = useState("")
   const [error, setError] = useState("")
+  const [showGateway, setShowGateway] = useState(false)
+  const [paymentData, setPaymentData] = useState<any>(null)
   
   const senderId = localStorage.getItem("customer_id")
   const receiverId = location.state?.upiId || ""
@@ -33,24 +36,17 @@ export default function EnterAmount() {
       type: "UPI"
     }
 
-    const sessionId = Date.now().toString()
-    localStorage.setItem(`payment_session_${sessionId}`, JSON.stringify(finalPaymentData))
+    setPaymentData(finalPaymentData)
+    setShowGateway(true)
+  }
 
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data === "GATEWAY_SUCCESS") {
-        window.removeEventListener("message", handleMessage)
-        localStorage.removeItem("payment_data") 
-        navigate("/customer-dashboard", { state: { refresh: true }, replace: true })
-      }
-    }
-    window.addEventListener("message", handleMessage)
+  const handleGatewaySuccess = () => {
+    setShowGateway(false)
+    navigate("/customer-dashboard", { state: { refresh: true }, replace: true })
+  }
 
-    const gatewayUrl = `${window.location.origin}/secure-gateway?session=${sessionId}`
-    const popup = window.open(gatewayUrl, "_blank", "width=450,height=600,top=100,left=100,menubar=no,toolbar=no,location=no,status=no,resizable=no")
-    
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      alert("Secure Gateway popup was blocked. Please allow popups for this site and try again.")
-    }
+  const handleGatewayCancel = () => {
+    setShowGateway(false)
   }
 
   return (
@@ -80,6 +76,24 @@ export default function EnterAmount() {
         )}
 
       </div>
+
+      {showGateway && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
+           <div className="w-full h-full max-w-4xl max-h-[800px] bg-black border border-blue-900/30 rounded-none lg:rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(30,58,138,0.5)] relative">
+              <button 
+                onClick={handleGatewayCancel}
+                className="absolute top-4 right-4 z-[110] text-slate-500 hover:text-white transition"
+              >
+                ✕
+              </button>
+              <SecureGateway 
+                paymentData={paymentData} 
+                onSuccess={handleGatewaySuccess}
+                onCancel={handleGatewayCancel}
+              />
+           </div>
+        </div>
+      )}
     </div>
   )
 }

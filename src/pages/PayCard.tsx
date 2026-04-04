@@ -26,8 +26,8 @@ export default function PayCard() {
       return
     }
 
-    if (Number(amount) < 10000) {
-      setError("Minimum payment amount is ₹10,000")
+    if (Number(amount) <= 0) {
+      setError("Please enter a valid amount greater than ₹0")
       return
     }
 
@@ -86,7 +86,7 @@ export default function PayCard() {
                <div className="text-right">
                   <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">Total Pay</span>
                   <div className="text-2xl font-black text-slate-800">
-                    ₹{amount || "0.00"}
+                    ₹{amount ? parseFloat(amount).toFixed(2) : "0.00"}
                   </div>
                </div>
             </div>
@@ -110,6 +110,7 @@ export default function PayCard() {
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Amount (₹)</label>
                   <input
                     type="number"
+                    step="any"
                     placeholder="0.00"
                     className="w-full p-3 mt-1 rounded-lg bg-white border border-slate-300 text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm font-semibold transition"
                     value={amount}
@@ -174,7 +175,7 @@ export default function PayCard() {
                   <span className="animate-pulse">Processing...</span>
                 ) : (
                   <>
-                    <Lock size={16} /> Pay ₹{amount || "0.00"}
+                    <Lock size={16} /> Pay ₹{amount ? parseFloat(amount).toFixed(2) : "0.00"}
                   </>
                 )}
               </button>

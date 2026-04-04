@@ -28,6 +28,15 @@ export default function SecureGateway({ onSuccess, onCancel, paymentData: initia
     // We expect the session data to be placed in localStorage before opening this gateway
     if (sessionId) {
       const data = JSON.parse(localStorage.getItem(`payment_session_${sessionId}`) || "null")
+      
+      // 🔐 Zero-Trust Check: Ensure the sender in the token matches the global identity
+      const activeCustomer = localStorage.getItem("customer_id")
+      if (data && data.sender !== activeCustomer) {
+        setError("Cross-session payment attempt blocked. Identity mismatch.")
+        setPaymentData(null)
+        return
+      }
+
       setPaymentData(data)
     }
 
@@ -56,6 +65,13 @@ export default function SecureGateway({ onSuccess, onCancel, paymentData: initia
     // 2. Handle cross-window messaging (for Popup use)
     if (window.opener) {
       window.opener.postMessage(success ? "GATEWAY_SUCCESS" : "GATEWAY_CANCEL", "*")
+    }
+    
+    // 3. Cleanup session data
+    const searchParams = new URLSearchParams(window.location.search)
+    const sessionId = searchParams.get("session")
+    if (sessionId) {
+      localStorage.removeItem(`payment_session_${sessionId}`)
     }
     
     // Only close if it's not embedded

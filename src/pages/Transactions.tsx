@@ -109,7 +109,7 @@ export default function Transactions() {
                       isSent ? "text-red-400" : "text-green-400"
                     }`}
                   >
-                    {isSent ? "-" : "+"} ₹ {tx.amount.toLocaleString()}
+                    {isSent ? "-" : "+"} ₹ {Number(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
               )

@@ -44,20 +44,30 @@ export default function App() {
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // 🔐 Customer local session (Tracking login state via localStorage)
+  /* ================= TAB LEVEL SECURITY ================= */
+  // Global session (all tabs): localStorage
+  // Tab-specific verification: sessionStorage
   const [customerSession, setCustomerSession] = useState<string | null>(
     localStorage.getItem("customer_id")
   )
+  const [tabVerified, setTabVerified] = useState<boolean>(
+    sessionStorage.getItem("tab_verified") === "true"
+  )
 
-  /* ================= LISTEN LOCAL STORAGE ================= */
-  // Syncs customer login state across tabs if they log out/in elsewhere
   useEffect(() => {
-    const syncCustomerSession = () => {
+    const syncSessions = () => {
       setCustomerSession(localStorage.getItem("customer_id"))
+      setTabVerified(sessionStorage.getItem("tab_verified") === "true")
     }
 
-    window.addEventListener("storage", syncCustomerSession)
-    return () => window.removeEventListener("storage", syncCustomerSession)
+    window.addEventListener("storage", syncSessions)
+    // Custom event to force tab-state sync within same window
+    window.addEventListener("tabSync", syncSessions)
+    
+    return () => {
+      window.removeEventListener("storage", syncSessions)
+      window.removeEventListener("tabSync", syncSessions)
+    }
   }, [])
 
   /* ================= SUPABASE AUTH (Admin/Employee) ================= */
@@ -123,41 +133,56 @@ export default function App() {
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/" element={<Landing />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/employee-login" element={<EmployeeLogin />} />
+        
+        {/* Redirect if already logged in (Global + Tab Verified) */}
+        <Route 
+          path="/admin-login" 
+          element={session ? <Navigate to="/admin" replace /> : <AdminLogin />} 
+        />
+        <Route 
+          path="/employee-login" 
+          element={session ? <Navigate to="/employee-dashboard" replace /> : <EmployeeLogin />} 
+        />
         <Route path="/employee-register" element={<EmployeeRegister />} />
-        <Route path="/customer-login" element={<CustomerLogin />} />
-        <Route path="/customer-register" element={<CustomerRegister />} />
+        
+        <Route 
+          path="/customer-login" 
+          element={customerSession && tabVerified ? <Navigate to="/customer-dashboard" replace /> : <CustomerLogin />} 
+        />
+        <Route 
+          path="/customer-register" 
+          element={customerSession ? <Navigate to="/customer-dashboard" replace /> : <CustomerRegister />} 
+        />
 
         {/* ================= CUSTOMER PROTECTED ROUTES ================= */}
-        {/* Uses customerSession (localStorage) for gatekeeping */}
+        {/* 🔐 DOUBLE-LOCK: Requires Global Session + Tab Verification */}
         <Route
           path="/customer-dashboard"
-          element={customerSession ? <CustomerDashboard /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <CustomerDashboard /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/pay-qr"
-          element={customerSession ? <PayQR /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <PayQR /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/pay-phone"
-          element={customerSession ? <PayPhone /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <PayPhone /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/my-qr"
-          element={customerSession ? <MyQR /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <MyQR /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/my-card"
-          element={customerSession ? <MyCard /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <MyCard /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/transfer-funds"
-          element={customerSession ? <TransferFunds /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <TransferFunds /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/pay-card"
-          element={customerSession ? <PayCard /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <PayCard /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/secure-gateway"
@@ -165,35 +190,35 @@ export default function App() {
         />
         <Route
           path="/account-statement"
-          element={customerSession ? <AccountStatement /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <AccountStatement /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/vault"
-          element={customerSession ? <PlaceholderScreen /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <PlaceholderScreen /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/settings"
-          element={customerSession ? <PlaceholderScreen /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <PlaceholderScreen /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/support"
-          element={customerSession ? <PlaceholderScreen /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <PlaceholderScreen /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/enter-amount"
-          element={customerSession ? <EnterAmount /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <EnterAmount /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/verify-payment-mpin"
-          element={customerSession ? <VerifyPaymentMpin /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <VerifyPaymentMpin /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/transactions"
-          element={customerSession ? <Transactions /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <Transactions /> : <Navigate to="/customer-login" replace />}
         />
         <Route
           path="/profile"
-          element={customerSession ? <Profile /> : <Navigate to="/customer-login" replace />}
+          element={customerSession && tabVerified ? <Profile /> : <Navigate to="/customer-login" replace />}
         />
 
         {/* ================= ADMIN PROTECTED ROUTES ================= */}

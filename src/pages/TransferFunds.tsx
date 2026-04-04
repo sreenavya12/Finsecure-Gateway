@@ -30,8 +30,8 @@ export default function TransferFunds() {
     setLoading(true)
     setError("")
 
-    if (Number(amount) < 10000) {
-      setError("Minimum transfer amount is ₹10,000")
+    if (Number(amount) <= 0) {
+      setError("Please enter a valid amount greater than ₹0")
       setLoading(false)
       return
     }
@@ -128,6 +128,7 @@ export default function TransferFunds() {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
                     <input
                       type="number"
+                      step="any"
                       placeholder="0.00"
                       className="w-full pl-10 p-4 rounded-xl bg-slate-950/50 border border-slate-700/50 focus:border-blue-500 focus:bg-slate-900 outline-none transition-all placeholder:text-slate-600 shadow-inner text-2xl font-bold font-mono text-white"
                       value={amount}
@@ -162,7 +163,7 @@ export default function TransferFunds() {
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-slate-400 text-sm">Amount</span>
-                    <span className="text-blue-400 font-bold text-2xl">₹ {parseFloat(amount || "0").toLocaleString()}</span>
+                    <span className="text-blue-400 font-bold text-2xl">₹ {parseFloat(amount || "0").toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="flex gap-4 pt-4">
@@ -178,7 +179,7 @@ export default function TransferFunds() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2 text-center">Transfer Successful!</h2>
-                <p className="text-slate-400 text-center text-sm mb-6 max-w-[250px]">₹ {parseFloat(amount).toLocaleString()} has been securely sent.</p>
+                <p className="text-slate-400 text-center text-sm mb-6 max-w-[250px]">₹ {parseFloat(amount).toFixed(2)} has been securely sent.</p>
                 <button onClick={() => navigate("/customer-dashboard")} className="w-full bg-slate-800 hover:bg-slate-700 text-white p-4 rounded-xl font-bold transition-all border border-slate-700">Return to Dashboard</button>
               </div>
             )}

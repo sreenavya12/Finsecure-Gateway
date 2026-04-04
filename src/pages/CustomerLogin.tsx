@@ -13,6 +13,18 @@ export default function CustomerLogin() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const [isLockedTab, setIsLockedTab] = useState(false)
+
+  // 🔹 Check for Existing Global Session
+  useEffect(() => {
+    const globalId = localStorage.getItem("customer_id")
+    if (globalId) {
+      setCustomerInput(globalId)
+      setIsLockedTab(true)
+    }
+    generateCaptcha()
+  }, [])
+
   const [captchaQuestion, setCaptchaQuestion] = useState("")
   const [captchaAnswer, setCaptchaAnswer] = useState("")
   const [captchaInput, setCaptchaInput] = useState("")
@@ -24,10 +36,6 @@ export default function CustomerLogin() {
     setCaptchaQuestion(`${num1} + ${num2}`)
     setCaptchaAnswer((num1 + num2).toString())
   }
-
-  useEffect(() => {
-    generateCaptcha()
-  }, [])
 
   // ================= PASSWORD STEP =================
   const handlePasswordCheck = async () => {
@@ -50,6 +58,14 @@ export default function CustomerLogin() {
       return
     }
 
+    // 🔐 Account Swap Protection
+    const globalId = localStorage.getItem("customer_id")
+    if (globalId && globalId !== trimmedInput) {
+      setError(`Another session is active (${globalId}). Logout there first.`)
+      setLoading(false)
+      return
+    }
+
     const { data, error: fetchError } = await supabase
       .from("customers")
       .select("*")
@@ -57,7 +73,7 @@ export default function CustomerLogin() {
       .single()
 
     if (fetchError || !data) {
-      setError("Invalid Customer ID or Mobile Number")
+      setError("Invalid Identity Records")
       generateCaptcha()
       setLoading(false)
       return
@@ -142,11 +158,13 @@ export default function CustomerLogin() {
 
     // ✅ SUCCESS LOGIN
     localStorage.setItem("customer_id", customerInput)
+    sessionStorage.setItem("tab_verified", "true")
 
-// 🔥 Force storage event update
-window.dispatchEvent(new Event("storage"))
+    // 🔥 Force state sync
+    window.dispatchEvent(new Event("storage"))
+    window.dispatchEvent(new Event("tabSync"))
 
-navigate("/customer-dashboard")
+    navigate("/customer-dashboard")
   }
 
   return (
@@ -249,13 +267,26 @@ navigate("/customer-dashboard")
         )}
 
         <div className="pt-8 mt-8 border-t border-slate-800 text-center">
-          <button
-            onClick={() => navigate("/customer-register")}
-            className="text-sm text-slate-400 hover:text-blue-400 transition-colors font-medium inline-flex items-center space-x-2"
-          >
-            <span>New customer?</span>
-            <span className="text-blue-400 underline decoration-blue-500/30 underline-offset-4">Register your identity</span>
-          </button>
+          {isLockedTab ? (
+            <button
+              onClick={() => {
+                localStorage.removeItem("customer_id")
+                sessionStorage.clear()
+                window.location.reload()
+              }}
+              className="text-sm text-red-400 hover:text-red-300 transition-colors font-medium"
+            >
+              Terminate Global Session & Log Out
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/customer-register")}
+              className="text-sm text-slate-400 hover:text-blue-400 transition-colors font-medium inline-flex items-center space-x-2"
+            >
+              <span>New customer?</span>
+              <span className="text-blue-400 underline decoration-blue-500/30 underline-offset-4">Register your identity</span>
+            </button>
+          )}
         </div>
 
       </div>

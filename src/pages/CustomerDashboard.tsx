@@ -156,7 +156,7 @@ export default function CustomerDashboard() {
                     <div className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-bold rounded uppercase tracking-tighter border border-emerald-500/20">Secured</div>
                   </div>
                   <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-white">
-                    {customerData?.balance !== undefined ? `₹${customerData.balance.toLocaleString()}` : "••••••"}
+                    {customerData?.balance !== undefined ? `₹${Number(customerData.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "••••••"}
                   </h2>
                 </div>
                 
@@ -237,7 +237,7 @@ export default function CustomerDashboard() {
                         </div>
                     </div>
                     <span className={`text-xs lg:text-sm font-black font-mono ${isSent ? 'text-white' : 'text-emerald-400'}`}>
-                        {isSent ? '-' : '+'}₹{tx.amount.toLocaleString()}
+                        {isSent ? '-' : '+'}₹{Number(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                 )}) : (

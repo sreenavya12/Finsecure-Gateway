@@ -14,8 +14,8 @@ export default function EnterAmount() {
   const receiverId = location.state?.upiId || ""
 
   const handleNext = () => {
-    if (!amount || Number(amount) < 10000) {
-      setError("Minimum payment amount is ₹10,000")
+    if (!amount || Number(amount) <= 0) {
+      setError("Please enter a valid amount greater than ₹0")
       return
     }
 
@@ -59,8 +59,9 @@ export default function EnterAmount() {
 
         <input
           type="number"
-          placeholder="Enter Amount"
-          className="w-full p-3 mb-4 rounded bg-slate-800 border border-slate-700"
+          step="any"
+          placeholder="0.00"
+          className="w-full p-3 mb-4 rounded bg-slate-800 border border-slate-700 font-mono text-center text-xl"
           onChange={(e) => setAmount(e.target.value)}
         />
 

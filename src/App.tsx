@@ -28,7 +28,6 @@ import MyCard from "./pages/MyCard"
 
 // UI Global
 import ThemeToggle from "./components/ThemeToggle"
-import AutoLogout from "./components/AutoLogout"
 
 // Admin / Employee
 import EmployeeDashboard from "./pages/EmployeeDashboard"
@@ -55,15 +54,6 @@ export default function App() {
     sessionStorage.getItem("tab_verified") === "true"
   )
   useEffect(() => {
-    const handleTabClose = () => {
-      // Clear all sessions on mobile when tab is closed
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      if (isMobile) {
-        localStorage.removeItem("customer_id")
-        sessionStorage.clear()
-      }
-    }
-
     const syncSessions = () => {
       setCustomerSession(localStorage.getItem("customer_id"))
       setTabVerified(sessionStorage.getItem("tab_verified") === "true")
@@ -72,13 +62,10 @@ export default function App() {
     window.addEventListener("storage", syncSessions)
     // Custom event to force tab-state sync within same window
     window.addEventListener("tabSync", syncSessions)
-    // Cleanup on tab close (Mobile Focus)
-    window.addEventListener("beforeunload", handleTabClose)
     
     return () => {
       window.removeEventListener("storage", syncSessions)
       window.removeEventListener("tabSync", syncSessions)
-      window.removeEventListener("beforeunload", handleTabClose)
     }
   }, [])
 
@@ -141,7 +128,6 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AutoLogout />
       <ThemeToggle />
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}

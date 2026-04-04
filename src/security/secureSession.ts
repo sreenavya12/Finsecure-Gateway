@@ -5,7 +5,7 @@ export function createSecureSession(userId: string, role: string) {
     role,
     tunnel_id: crypto.randomUUID(),
     created: Date.now(),
-    expires: Date.now() + 30 * 60 * 1000
+    expires_at: Date.now() + 30 * 60 * 1000
   }
 
   localStorage.setItem("secure_tunnel", JSON.stringify(session))

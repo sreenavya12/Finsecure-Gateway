@@ -46,7 +46,11 @@ export default function EnterAmount() {
     window.addEventListener("message", handleMessage)
 
     const gatewayUrl = `${window.location.origin}/secure-gateway?session=${sessionId}`
-    window.open(gatewayUrl, "_blank", "width=450,height=600,top=100,left=100,menubar=no,toolbar=no,location=no,status=no,resizable=no")
+    const popup = window.open(gatewayUrl, "_blank", "width=450,height=600,top=100,left=100,menubar=no,toolbar=no,location=no,status=no,resizable=no")
+    
+    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+      alert("Secure Gateway popup was blocked. Please allow popups for this site and try again.")
+    }
   }
 
   return (
